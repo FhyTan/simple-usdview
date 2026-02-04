@@ -1,6 +1,8 @@
 #pragma once
 
+#include <pxr/base/gf/bbox3d.h>
 #include <pxr/usd/usd/common.h>
+#include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usdImaging/usdImagingGL/engine.h>
 #include <pxr/usdImaging/usdImagingGL/renderParams.h>
 #include <qopengldebug.h>
@@ -12,6 +14,7 @@
 #include <QMouseEvent>
 #include <QPointF>
 #include <QWheelEvent>
+#include <memory>
 
 #include "FreeCamera.h"
 
@@ -32,6 +35,10 @@ class StageViewWindow : public QOpenGLWindow, protected QOpenGLFunctions {
     pxr::UsdImagingGLRenderParams m_renderParams;
     pxr::UsdStageRefPtr m_stage;
     FreeCamera m_camera;
+
+   private:
+    pxr::UsdGeomBBoxCache m_bboxCache;
+    std::unique_ptr<pxr::GfBBox3d> m_bboxToDraw = nullptr;
 
    protected:
     void closeEvent(QCloseEvent *event) override;
