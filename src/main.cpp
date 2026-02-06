@@ -1,10 +1,14 @@
 #include <qapplication.h>
 #include <qsurfaceformat.h>
 
+#include <QVariantAnimation>
+
+#include "FreeCamera.h"
 #include "StageViewWindow.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
+    qRegisterAnimationInterpolator<CameraView>(cameraViewInterpolator);
 
     QSurfaceFormat fmt;
     fmt.setVersion(4, 5);

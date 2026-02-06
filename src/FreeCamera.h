@@ -3,29 +3,52 @@
 #include <pxr/base/gf/bbox3d.h>
 #include <pxr/base/gf/frustum.h>
 #include <pxr/base/gf/matrix4d.h>
+#include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec3d.h>
 #include <pxr/usd/usd/common.h>
 #include <pxr/usd/usd/prim.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 #include <QObject>
+#include <QPropertyAnimation>
+#include <QVector3D>
+
+struct CameraView {
+    pxr::GfVec3d position;
+    double viewDistance;
+};
+
+Q_DECLARE_METATYPE(CameraView)
+
+QVariant cameraViewInterpolator(const CameraView& start, const CameraView& end,
+                                qreal progress);
 
 class FreeCamera : public QObject {
     Q_OBJECT
+    Q_PROPERTY(CameraView cameraView READ cameraView WRITE setCameraView)
 
    public:
-    FreeCamera();
+    FreeCamera(QObject* parent = nullptr);
     ~FreeCamera() override;
 
-    pxr::GfMatrix4d GetViewMatrix() const;
-    pxr::GfMatrix4d GetProjectionMatrix() const;
-    const pxr::GfFrustum& GetFrustum() const;
+    pxr::GfMatrix4d getViewMatrix() const;
+    pxr::GfMatrix4d getProjectionMatrix() const;
+    const pxr::GfFrustum& getFrustum() const;
 
-    FreeCamera& Orbit(const double deltaX, const double deltaY);
-    FreeCamera& Pan(const double deltaX, const double deltaY);
-    FreeCamera& Zoom(const double deltaDistance);
+    CameraView cameraView() const;
+    void setCameraView(CameraView value);
 
-    FreeCamera& Fit(const pxr::GfBBox3d bbox);
+    FreeCamera& orbit(const double deltaX, const double deltaY);
+    FreeCamera& pan(const double deltaX, const double deltaY);
+    FreeCamera& zoom(const double deltaDistance);
+
+    FreeCamera& fit(const pxr::GfBBox3d bbox);
+
+   Q_SIGNALS:
+    void viewUpdated();
 
    private:
     pxr::GfFrustum m_frustum;
+    QPropertyAnimation* m_fit_animation;
 };

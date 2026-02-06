@@ -18,6 +18,7 @@
 #include <pxr/usdImaging/usdImagingGL/renderParams.h>
 #include <qevent.h>
 #include <qnamespace.h>
+#include <qoverload.h>
 
 #include <iostream>
 #include <memory>
@@ -28,11 +29,15 @@
 StageViewWindow::StageViewWindow()
     : QOpenGLWindow(QOpenGLWindow::NoPartialUpdate, nullptr),
       m_engine(nullptr),
-      m_debugLogger(nullptr),
+      m_camera(new FreeCamera(this)),
       m_bboxCache(pxr::UsdTimeCode::Default(),
                   pxr::TfTokenVector{pxr::UsdGeomTokens->default_,
                                      pxr::UsdGeomTokens->render,
-                                     pxr::UsdGeomTokens->proxy}) {}
+                                     pxr::UsdGeomTokens->proxy}),
+      m_debugLogger(nullptr) {
+    connect(m_camera, &FreeCamera::viewUpdated, this,
+            qOverload<>(&StageViewWindow::update));
+}
 
 StageViewWindow::~StageViewWindow() = default;
 
@@ -69,8 +74,8 @@ void StageViewWindow::paintGL() {
         m_renderParams.bboxes = std::vector<pxr::GfBBox3d>{};
     }
 
-    m_engine->SetCameraState(m_camera.GetViewMatrix(),
-                             m_camera.GetProjectionMatrix());
+    m_engine->SetCameraState(m_camera->getViewMatrix(),
+                             m_camera->getProjectionMatrix());
     m_engine->Render(m_stage->GetPseudoRoot(), m_renderParams);
 }
 
@@ -83,7 +88,7 @@ void StageViewWindow::closeEvent(QCloseEvent *event) {
 
 void StageViewWindow::wheelEvent(QWheelEvent *event) {
     int delta = event->angleDelta().y();
-    m_camera.Zoom(static_cast<double>(delta) * 0.01);
+    m_camera->zoom(static_cast<double>(delta) * 0.01);
     update();
 }
 
@@ -121,7 +126,7 @@ void StageViewWindow::mousePressEvent(QMouseEvent *event) {
         // qDebug() << "window pos:" << x << y;
         // qDebug() << "pick size:" << w << h;
 
-        auto pickFrustum = m_camera.GetFrustum().ComputeNarrowedFrustum(
+        auto pickFrustum = m_camera->getFrustum().ComputeNarrowedFrustum(
             pxr::GfVec2d(x, y), pxr::GfVec2d(w, h));
 
         pxr::UsdImagingGLEngine::PickParams pickParams{
@@ -161,13 +166,13 @@ void StageViewWindow::mouseMoveEvent(QMouseEvent *event) {
 
         switch (m_navigateType) {
             case Orbiting:
-                m_camera.Orbit(-delta.x() * 0.5, -delta.y() * 0.5);
+                m_camera->orbit(-delta.x() * 0.5, -delta.y() * 0.5);
                 break;
             case Panning:
-                m_camera.Pan(-delta.x() * 0.01, delta.y() * 0.01);
+                m_camera->pan(-delta.x() * 0.01, delta.y() * 0.01);
                 break;
             case Zooming:
-                m_camera.Zoom(-delta.y() * 0.1);
+                m_camera->zoom(-delta.y() * 0.1);
                 break;
         }
 
@@ -181,7 +186,7 @@ void StageViewWindow::keyPressEvent(QKeyEvent *event) {
         case Qt::Key_F: {
             // Focus to prim
             if (m_bboxToDraw) {
-                m_camera.Fit(*m_bboxToDraw);
+                m_camera->fit(*m_bboxToDraw);
                 update();
             }
             break;
@@ -190,7 +195,7 @@ void StageViewWindow::keyPressEvent(QKeyEvent *event) {
         case Qt::Key_A: {
             // Focus to all
             auto bbox = m_bboxCache.ComputeWorldBound(m_stage->GetPseudoRoot());
-            m_camera.Fit(bbox);
+            m_camera->fit(bbox);
             update();
             break;
         }

@@ -26,22 +26,18 @@ class StageViewWindow : public QOpenGLWindow, protected QOpenGLFunctions {
     StageViewWindow();
     ~StageViewWindow() override;
 
+   private:
+    enum NavigateType {
+        Orbiting,
+        Panning,
+        Zooming,
+    };
+
    protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
-   private:
-    pxr::UsdImagingGLEngine *m_engine;
-    pxr::UsdImagingGLRenderParams m_renderParams;
-    pxr::UsdStageRefPtr m_stage;
-    FreeCamera m_camera;
-
-   private:
-    pxr::UsdGeomBBoxCache m_bboxCache;
-    std::unique_ptr<pxr::GfBBox3d> m_bboxToDraw = nullptr;
-
-   protected:
     void closeEvent(QCloseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -50,16 +46,17 @@ class StageViewWindow : public QOpenGLWindow, protected QOpenGLFunctions {
     void keyPressEvent(QKeyEvent *event) override;
 
    private:
-    enum NavigateType {
-        Orbiting,
-        Panning,
-        Zooming,
-    };
+    pxr::UsdImagingGLEngine *m_engine;
+    pxr::UsdImagingGLRenderParams m_renderParams;
+    pxr::UsdStageRefPtr m_stage;
 
+    pxr::UsdGeomBBoxCache m_bboxCache;
+    std::unique_ptr<pxr::GfBBox3d> m_bboxToDraw = nullptr;
+
+    FreeCamera *m_camera;
     QPointF m_startPos;
     NavigateType m_navigateType;
     bool m_isMoving = false;
 
-   private:
     QOpenGLDebugLogger *m_debugLogger;
 };
