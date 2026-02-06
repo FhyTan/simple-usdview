@@ -9,6 +9,8 @@
 #include <pxr/base/gf/vec3d.h>
 #include <pxr/base/gf/vec3f.h>
 
+#include <iostream>
+
 FreeCamera::FreeCamera() {
     m_frustum = pxr::GfFrustum(
         pxr::GfVec3d(0, -10, 5), pxr::GfRotation(pxr::GfVec3d(1, 0, 0), 60),
@@ -70,12 +72,22 @@ FreeCamera& FreeCamera::Zoom(const double deltaDistance) {
     if (distance - deltaDistance > 0.1) {
         m_frustum.Transform(
             pxr::GfMatrix4d().SetTranslate(viewDirection * deltaDistance));
+        m_frustum.SetViewDistance(distance - deltaDistance);
     }
 
     return *this;
 }
 
-FreeCamera& FreeCamera::FitToPrim(const pxr::UsdPrim& prim) { return *this; }
-FreeCamera& FreeCamera::FitToAll(const pxr::UsdStagePtr& stage) {
+FreeCamera& FreeCamera::Fit(const pxr::GfBBox3d bbox) {
+    auto box = bbox.GetBox();
+    auto size = box.GetSize().GetArray();
+
+    auto center = bbox.ComputeCentroid();
+    auto radius = pxr::GfMax(size[0], size[1], size[2]);
+    auto origNearFar = m_frustum.GetNearFar();
+
+    m_frustum.FitToSphere(center, radius, 1);
+    m_frustum.SetNearFar(origNearFar);
+
     return *this;
 }

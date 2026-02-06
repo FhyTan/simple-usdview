@@ -5,6 +5,7 @@
 #include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usdImaging/usdImagingGL/engine.h>
 #include <pxr/usdImaging/usdImagingGL/renderParams.h>
+#include <qevent.h>
 #include <qopengldebug.h>
 #include <qopenglfunctions.h>
 #include <qopenglwindow.h>
@@ -46,6 +47,7 @@ class StageViewWindow : public QOpenGLWindow, protected QOpenGLFunctions {
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
    private:
     enum NavigateType {

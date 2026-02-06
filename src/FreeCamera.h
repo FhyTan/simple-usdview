@@ -1,5 +1,6 @@
 #pragma once
 
+#include <pxr/base/gf/bbox3d.h>
 #include <pxr/base/gf/frustum.h>
 #include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/vec3d.h>
@@ -23,8 +24,7 @@ class FreeCamera : public QObject {
     FreeCamera& Pan(const double deltaX, const double deltaY);
     FreeCamera& Zoom(const double deltaDistance);
 
-    FreeCamera& FitToPrim(const pxr::UsdPrim& prim);
-    FreeCamera& FitToAll(const pxr::UsdStagePtr& stage);
+    FreeCamera& Fit(const pxr::GfBBox3d bbox);
 
    private:
     pxr::GfFrustum m_frustum;

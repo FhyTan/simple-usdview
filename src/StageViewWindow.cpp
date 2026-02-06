@@ -145,9 +145,7 @@ void StageViewWindow::mousePressEvent(QMouseEvent *event) {
 
             auto prim = m_stage->GetPrimAtPath(hitPrimPath);
             m_bboxToDraw = std::make_unique<pxr::GfBBox3d>(
-                pxr::GfBBox3d{m_bboxCache.ComputeWorldBound(prim)});
-            // std::cout << "Draw bbox: " << m_bboxToDraw->GetBox() <<
-            // std::endl;
+                m_bboxCache.ComputeWorldBound(prim));
         }
         update();
     }
@@ -175,5 +173,26 @@ void StageViewWindow::mouseMoveEvent(QMouseEvent *event) {
 
         m_startPos = event->position();
         update();
+    }
+}
+
+void StageViewWindow::keyPressEvent(QKeyEvent *event) {
+    switch (event->key()) {
+        case Qt::Key_F: {
+            // Focus to prim
+            if (m_bboxToDraw) {
+                m_camera.Fit(*m_bboxToDraw);
+                update();
+            }
+            break;
+        }
+
+        case Qt::Key_A: {
+            // Focus to all
+            auto bbox = m_bboxCache.ComputeWorldBound(m_stage->GetPseudoRoot());
+            m_camera.Fit(bbox);
+            update();
+            break;
+        }
     }
 }
