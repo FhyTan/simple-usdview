@@ -39,14 +39,18 @@ class StageViewWindow : public QOpenGLWindow, protected QOpenGLFunctions {
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
+    bool event(QEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void dropEvent(QDropEvent *event);
 
    private:
+    void initializeRenderEngine();
+
     pxr::UsdImagingGLEngine *m_engine;
     pxr::UsdImagingGLRenderParams m_renderParams;
     pxr::UsdStageRefPtr m_stage;

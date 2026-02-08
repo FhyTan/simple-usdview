@@ -17,18 +17,21 @@
 #include <pxr/usdImaging/usdImagingGL/engine.h>
 #include <pxr/usdImaging/usdImagingGL/renderParams.h>
 #include <qboxlayout.h>
+#include <qcoreevent.h>
 #include <qevent.h>
 #include <qnamespace.h>
 #include <qopenglwindow.h>
 #include <qoverload.h>
 #include <qwidget.h>
 
+#include <QMimeData>
 #include <QVBoxLayout>
 #include <iostream>
 #include <memory>
 #include <vector>
 
 #include "FreeCamera.h"
+#include "Settings.h"
 
 StageViewWindow::StageViewWindow()
     : QOpenGLWindow(QOpenGLWindow::NoPartialUpdate, nullptr),
@@ -47,12 +50,9 @@ StageViewWindow::~StageViewWindow() = default;
 
 void StageViewWindow::initializeGL() {
     initializeOpenGLFunctions();
+    initializeRenderEngine();
 
-    m_stage = pxr::UsdStage::Open("display.usda");
-
-    m_engine = new pxr::UsdImagingGLEngine();
-    m_engine->SetRendererAov(pxr::HdAovTokens->color);
-    m_engine->SetSelectionColor(pxr::GfVec4f(0.5, 1.0, 0.5, 0.5));
+    m_stage = pxr::UsdStage::CreateInMemory();
 
     m_renderParams = pxr::UsdImagingGLRenderParams();
     m_renderParams.drawMode = pxr::UsdImagingGLDrawMode::DRAW_SHADED_SMOOTH;
@@ -81,6 +81,15 @@ void StageViewWindow::paintGL() {
     m_engine->SetCameraState(m_camera->getViewMatrix(),
                              m_camera->getProjectionMatrix());
     m_engine->Render(m_stage->GetPseudoRoot(), m_renderParams);
+}
+
+bool StageViewWindow::event(QEvent *event) {
+    if (event->type() == QEvent::Drop) {
+        dropEvent(static_cast<QDropEvent *>(event));
+        return true;
+    }
+
+    return QOpenGLWindow::event(event);
 }
 
 void StageViewWindow::closeEvent(QCloseEvent *event) {
@@ -206,7 +215,49 @@ void StageViewWindow::keyPressEvent(QKeyEvent *event) {
     }
 }
 
+void StageViewWindow::dropEvent(QDropEvent *event) {
+    if (!event->mimeData()->hasUrls()) {
+        return;
+    }
+
+    auto filePath = event->mimeData()->urls()[0].toLocalFile();
+    for (auto s : Settings::usdFileExts) {
+        if (filePath.endsWith(s)) {
+            m_stage = pxr::UsdStage::Open(filePath.toStdString());
+            initializeRenderEngine();
+
+            m_bboxCache.Clear();
+            auto bbox = m_bboxCache.ComputeWorldBound(m_stage->GetPseudoRoot());
+            m_camera->fit(bbox);
+
+            update();
+
+            event->accept();
+            return;
+        }
+    }
+}
+
+void StageViewWindow::initializeRenderEngine() {
+    makeCurrent();
+
+    if (m_engine) {
+        delete m_engine;
+    }
+
+    m_engine = new pxr::UsdImagingGLEngine();
+    m_engine->SetRendererAov(pxr::HdAovTokens->color);
+    m_engine->SetSelectionColor(pxr::GfVec4f(0.5, 1.0, 0.5, 0.5));
+
+    int w = width();
+    int h = height();
+    m_engine->SetRenderViewport(pxr::GfVec4d(0, 0, w, h));
+    m_engine->SetRenderBufferSize(pxr::GfVec2i(w, h));
+}
+
 StageViewWidget::StageViewWidget(QWidget *parent) : QWidget(parent) {
+    setAcceptDrops(true);
+
     m_stageViewWindow = new StageViewWindow();
     m_container = createWindowContainer(m_stageViewWindow, this);
 

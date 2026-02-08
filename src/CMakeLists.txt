@@ -16,6 +16,7 @@ qt_add_executable(simple_usdview
     StageViewWidget.h StageViewWidget.cpp
     FreeCamera.h FreeCamera.cpp
     Outliner.h Outliner.cpp
+    Settings.h
 )
 
 set_target_properties(simple_usdview PROPERTIES
