@@ -1,4 +1,4 @@
-#include "StageViewWindow.h"
+#include "StageViewWidget.h"
 
 #include <pxr/base/gf/bbox3d.h>
 #include <pxr/base/gf/frustum.h>
@@ -16,10 +16,14 @@
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usdImaging/usdImagingGL/engine.h>
 #include <pxr/usdImaging/usdImagingGL/renderParams.h>
+#include <qboxlayout.h>
 #include <qevent.h>
 #include <qnamespace.h>
+#include <qopenglwindow.h>
 #include <qoverload.h>
+#include <qwidget.h>
 
+#include <QVBoxLayout>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -200,4 +204,13 @@ void StageViewWindow::keyPressEvent(QKeyEvent *event) {
             break;
         }
     }
+}
+
+StageViewWidget::StageViewWidget(QWidget *parent) : QWidget(parent) {
+    m_stageViewWindow = new StageViewWindow();
+    m_container = createWindowContainer(m_stageViewWindow, this);
+
+    setLayout(new QVBoxLayout());
+    layout()->addWidget(m_container);
+    layout()->setContentsMargins(0, 0, 0, 0);
 }

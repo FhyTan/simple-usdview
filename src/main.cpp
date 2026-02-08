@@ -1,10 +1,14 @@
+#include <pxr/usd/usd/stage.h>
 #include <qapplication.h>
 #include <qsurfaceformat.h>
 
 #include <QVariantAnimation>
 
 #include "FreeCamera.h"
-#include "StageViewWindow.h"
+#include "MainWindow.h"
+#include "Outliner.h"
+#include "StageViewWidget.h"
+
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
@@ -18,7 +22,15 @@ int main(int argc, char *argv[]) {
     fmt.setOption(QSurfaceFormat::DebugContext);
     QSurfaceFormat::setDefaultFormat(fmt);
 
-    StageViewWindow window;
+    // StageViewWidget stageViewWidget;
+    // stageViewWidget.resize(800, 600);
+    // stageViewWidget.show();
+
+    // Outliner outliner;
+    // outliner.setUsdStage(pxr::UsdStage::Open("display.usda"));
+    // outliner.show();
+
+    MainWindow window;
     window.resize(800, 600);
     window.show();
 

@@ -12,8 +12,10 @@ add_definitions(-DQT_NO_KEYWORDS)
 
 qt_add_executable(simple_usdview
     main.cpp
-    StageViewWindow.h StageViewWindow.cpp
+    MainWindow.h MainWindow.cpp
+    StageViewWidget.h StageViewWidget.cpp
     FreeCamera.h FreeCamera.cpp
+    Outliner.h Outliner.cpp
 )
 
 set_target_properties(simple_usdview PROPERTIES

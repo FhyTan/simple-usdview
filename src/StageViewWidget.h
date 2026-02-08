@@ -15,6 +15,7 @@
 #include <QMouseEvent>
 #include <QPointF>
 #include <QWheelEvent>
+#include <QWidget>
 #include <memory>
 
 #include "FreeCamera.h"
@@ -59,4 +60,16 @@ class StageViewWindow : public QOpenGLWindow, protected QOpenGLFunctions {
     bool m_isMoving = false;
 
     QOpenGLDebugLogger *m_debugLogger;
+};
+
+class StageViewWidget : public QWidget {
+    Q_OBJECT
+
+   public:
+    StageViewWidget(QWidget *parent = nullptr);
+    ~StageViewWidget() override = default;
+
+   private:
+    StageViewWindow *m_stageViewWindow;
+    QWidget *m_container;
 };
