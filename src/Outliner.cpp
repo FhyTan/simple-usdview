@@ -7,27 +7,57 @@
 #include <qabstractitemview.h>
 #include <qdebug.h>
 #include <qnamespace.h>
+#include <qtmetamacros.h>
 #include <qtreewidget.h>
 #include <qvariant.h>
 
 #include <iostream>
+#include <optional>
 #include <string>
 
 Outliner::Outliner(QWidget* parent) : QTreeWidget(parent) {
     setColumnCount(1);
     setHeaderHidden(true);
     setSelectionMode(SingleSelection);
+
+    connect(this, &Outliner::itemClicked, this, &Outliner::onItemClicked);
 }
 Outliner::~Outliner() = default;
 
-void Outliner::setUsdStage(const pxr::UsdStagePtr stage) {
+void Outliner::onStageOpened(const pxr::UsdStagePtr& stage) {
+    std::cout << "Outliner::onStageOpened" << std::endl;
+    m_stage = stage;
+    buildStageTree();
+}
+
+void Outliner::onPrimSelected(const std::optional<pxr::UsdPrim>& prim) {
+    if (prim) {
+        auto pathStr = prim->GetPath().GetString().c_str();
+        auto item = m_pathToItemHash.value(pathStr, nullptr);
+
+        if (item) {
+            scrollToItem(item);
+            setCurrentItem(item);
+        }
+    } else {
+        clearSelection();
+    }
+}
+
+void Outliner::onItemClicked(QTreeWidgetItem* item, int column) {
+    auto prim = item->data(column, Qt::UserRole).value<pxr::UsdPrim>();
+    Q_EMIT primSelected(std::make_optional(prim));
+    std::cout << "Outliner::onItemClicked: " << prim.GetPath() << std::endl;
+}
+
+void Outliner::buildStageTree() {
     clear();
     m_pathToItemHash.clear();
 
     // Construct usd prim tree
     auto item = new QTreeWidgetItem(this);
     int currentDepth = 0;
-    for (pxr::UsdPrim prim : stage->Traverse()) {
+    for (pxr::UsdPrim prim : m_stage->Traverse()) {
         if (!prim.IsA<pxr::UsdGeomImageable>()) {
             continue;
         }
@@ -47,7 +77,7 @@ void Outliner::setUsdStage(const pxr::UsdStagePtr stage) {
 
         item = new QTreeWidgetItem(item);
         item->setText(0, name);
-        item->setData(0, Qt::UserRole, QVariant::fromValue(path));
+        item->setData(0, Qt::UserRole, QVariant::fromValue(prim));
         currentDepth += 1;
         m_pathToItemHash[path.GetString().c_str()] = item;
     }
@@ -58,13 +88,4 @@ void Outliner::setUsdStage(const pxr::UsdStagePtr stage) {
     delete topUntitledItem;
 
     expandAll();
-
-    // auto test_item = m_pathToItemHash.value("/root/Geo/Plane", nullptr);
-    // if (test_item) {
-    //     qDebug() << "Success find item: " << test_item;
-    //     scrollToItem(test_item);
-    //     setCurrentItem(test_item);
-    // } else {
-    //     qDebug() << "Failed find item: ";
-    // }
 }

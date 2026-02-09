@@ -2,6 +2,7 @@
 
 #include <pxr/base/gf/bbox3d.h>
 #include <pxr/usd/usd/common.h>
+#include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usdImaging/usdImagingGL/engine.h>
 #include <pxr/usdImaging/usdImagingGL/renderParams.h>
@@ -9,6 +10,7 @@
 #include <qopengldebug.h>
 #include <qopenglfunctions.h>
 #include <qopenglwindow.h>
+#include <qtmetamacros.h>
 #include <qwindow.h>
 
 #include <QKeyEvent>
@@ -17,6 +19,7 @@
 #include <QWheelEvent>
 #include <QWidget>
 #include <memory>
+#include <optional>
 
 #include "FreeCamera.h"
 
@@ -48,6 +51,13 @@ class StageViewWindow : public QOpenGLWindow, protected QOpenGLFunctions {
     void keyPressEvent(QKeyEvent *event) override;
     void dropEvent(QDropEvent *event);
 
+   Q_SIGNALS:
+    void stageOpened(const pxr::UsdStagePtr &stage);
+    void primSelected(const std::optional<pxr::UsdPrim> &prim);
+
+   public Q_SLOTS:
+    void onPrimSelected(const std::optional<pxr::UsdPrim> &prim);
+
    private:
     void initializeRenderEngine();
 
@@ -66,12 +76,20 @@ class StageViewWindow : public QOpenGLWindow, protected QOpenGLFunctions {
     QOpenGLDebugLogger *m_debugLogger;
 };
 
+// A widget wrapper for StageViewWindow
 class StageViewWidget : public QWidget {
     Q_OBJECT
 
    public:
     StageViewWidget(QWidget *parent = nullptr);
     ~StageViewWidget() override = default;
+
+   Q_SIGNALS:
+    void stageOpened(const pxr::UsdStagePtr &stage);
+    void primSelected(const std::optional<pxr::UsdPrim> &prim);
+
+   public Q_SLOTS:
+    void onPrimSelected(const std::optional<pxr::UsdPrim> &prim);
 
    private:
     StageViewWindow *m_stageViewWindow;

@@ -19,8 +19,6 @@ struct CameraView {
     double viewDistance;
 };
 
-Q_DECLARE_METATYPE(CameraView)
-
 QVariant cameraViewInterpolator(const CameraView& start, const CameraView& end,
                                 qreal progress);
 

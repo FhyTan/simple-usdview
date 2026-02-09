@@ -10,6 +10,7 @@
 #include <pxr/imaging/hd/tokens.h>
 #include <pxr/imaging/hdx/tokens.h>
 #include <pxr/usd/sdf/path.h>
+#include <pxr/usd/usd/common.h>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usd/timeCode.h>
@@ -22,12 +23,16 @@
 #include <qnamespace.h>
 #include <qopenglwindow.h>
 #include <qoverload.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 #include <qwidget.h>
+#include <winsock.h>
 
 #include <QMimeData>
 #include <QVBoxLayout>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "FreeCamera.h"
@@ -44,6 +49,8 @@ StageViewWindow::StageViewWindow()
       m_debugLogger(nullptr) {
     connect(m_camera, &FreeCamera::viewUpdated, this,
             qOverload<>(&StageViewWindow::update));
+    connect(this, &StageViewWindow::primSelected, this,
+            &StageViewWindow::onPrimSelected);
 }
 
 StageViewWindow::~StageViewWindow() = default;
@@ -153,19 +160,12 @@ void StageViewWindow::mousePressEvent(QMouseEvent *event) {
                                    &results);
 
         if (results.empty()) {
-            // qDebug() << "Select no prim, clear selection";
-            m_engine->SetSelected(pxr::SdfPathVector{});
-            m_bboxToDraw = nullptr;
+            Q_EMIT primSelected(std::nullopt);
         } else {
             auto hitPrimPath = results[0].hitPrimPath;
-            // qDebug() << "Select prim:" << hitPrimPath.GetString();
-            m_engine->SetSelected(pxr::SdfPathVector{hitPrimPath});
-
             auto prim = m_stage->GetPrimAtPath(hitPrimPath);
-            m_bboxToDraw = std::make_unique<pxr::GfBBox3d>(
-                m_bboxCache.ComputeWorldBound(prim));
+            Q_EMIT primSelected(std::make_optional(prim));
         }
-        update();
     }
 }
 
@@ -230,8 +230,8 @@ void StageViewWindow::dropEvent(QDropEvent *event) {
             auto bbox = m_bboxCache.ComputeWorldBound(m_stage->GetPseudoRoot());
             m_camera->fit(bbox);
 
+            Q_EMIT stageOpened(m_stage);
             update();
-
             event->accept();
             return;
         }
@@ -255,6 +255,20 @@ void StageViewWindow::initializeRenderEngine() {
     m_engine->SetRenderBufferSize(pxr::GfVec2i(w, h));
 }
 
+void StageViewWindow::onPrimSelected(const std::optional<pxr::UsdPrim> &prim) {
+    if (prim) {
+        auto path = prim->GetPath();
+
+        m_engine->SetSelected(pxr::SdfPathVector{path});
+        m_bboxToDraw = std::make_unique<pxr::GfBBox3d>(
+            m_bboxCache.ComputeWorldBound(*prim));
+    } else {
+        m_engine->ClearSelected();
+        m_bboxToDraw = nullptr;
+    }
+    update();
+}
+
 StageViewWidget::StageViewWidget(QWidget *parent) : QWidget(parent) {
     setAcceptDrops(true);
 
@@ -264,4 +278,13 @@ StageViewWidget::StageViewWidget(QWidget *parent) : QWidget(parent) {
     setLayout(new QVBoxLayout());
     layout()->addWidget(m_container);
     layout()->setContentsMargins(0, 0, 0, 0);
+
+    connect(m_stageViewWindow, &StageViewWindow::stageOpened, this,
+            &StageViewWidget::stageOpened);
+    connect(m_stageViewWindow, &StageViewWindow::primSelected, this,
+            &StageViewWidget::primSelected);
+}
+
+void StageViewWidget::onPrimSelected(const std::optional<pxr::UsdPrim> &prim) {
+    m_stageViewWindow->onPrimSelected(prim);
 }

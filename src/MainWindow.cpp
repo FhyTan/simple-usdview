@@ -2,7 +2,11 @@
 
 #include <qboxlayout.h>
 #include <qlist.h>
+#include <qnamespace.h>
 #include <qsplitter.h>
+
+#include "Outliner.h"
+#include "StageViewWidget.h"
 
 MainWindow::MainWindow() : QMainWindow() {
     m_outliner = new Outliner(this);
@@ -14,6 +18,13 @@ MainWindow::MainWindow() : QMainWindow() {
     m_splitter->setSizes(QList<int>{300, 800});
 
     setCentralWidget(m_splitter);
+
+    connect(m_stageViewWidget, &StageViewWidget::stageOpened, m_outliner,
+            &Outliner::onStageOpened);
+    connect(m_stageViewWidget, &StageViewWidget::primSelected, m_outliner,
+            &Outliner::onPrimSelected);
+    connect(m_outliner, &Outliner::primSelected, m_stageViewWidget,
+            &StageViewWidget::onPrimSelected);
 }
 
 MainWindow::~MainWindow() = default;
