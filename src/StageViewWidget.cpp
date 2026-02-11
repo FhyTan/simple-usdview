@@ -3,10 +3,15 @@
 #include <pxr/base/gf/bbox3d.h>
 #include <pxr/base/gf/frustum.h>
 #include <pxr/base/gf/matrix4d.h>
+#include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec2d.h>
 #include <pxr/base/gf/vec3d.h>
 #include <pxr/base/gf/vec4d.h>
+#include <pxr/base/gf/vec4f.h>
 #include <pxr/base/tf/token.h>
+#include <pxr/base/vt/value.h>
+#include <pxr/imaging/glf/simpleLight.h>
+#include <pxr/imaging/glf/simpleMaterial.h>
 #include <pxr/imaging/hd/tokens.h>
 #include <pxr/imaging/hdx/tokens.h>
 #include <pxr/usd/sdf/path.h>
@@ -17,6 +22,7 @@
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usdImaging/usdImagingGL/engine.h>
 #include <pxr/usdImaging/usdImagingGL/renderParams.h>
+#include <pxr/usdImaging/usdImagingGL/rendererSettings.h>
 #include <qboxlayout.h>
 #include <qcoreevent.h>
 #include <qevent.h>
@@ -67,8 +73,8 @@ void StageViewWindow::initializeGL() {
     m_renderParams.colorCorrectionMode = pxr::HdxColorCorrectionTokens->sRGB;
     m_renderParams.highlight = true;
     m_renderParams.bboxLineColor = pxr::GfVec4f(1.0, 1.0, 1.0, 0.5);
-    m_renderParams.bboxLineDashSize = 3;
-    m_renderParams.showGuides = true;
+    // m_renderParams.bboxLineDashSize = 3;
+    m_renderParams.enableSceneLights = false;
 }
 
 void StageViewWindow::resizeGL(int w, int h) {
@@ -253,6 +259,20 @@ void StageViewWindow::initializeRenderEngine() {
     int h = height();
     m_engine->SetRenderViewport(pxr::GfVec4d(0, 0, w, h));
     m_engine->SetRenderBufferSize(pxr::GfVec2i(w, h));
+
+    auto light = pxr::GlfSimpleLight();
+    auto material = pxr::GlfSimpleMaterial();
+    auto ambient = pxr::GfVec4f(0.01, 0.01, 0.01, 1.0);
+
+    light.SetIsDomeLight(true);
+    light.SetTransform(pxr::GfMatrix4d().SetRotate(
+        pxr::GfRotation(pxr::GfVec3d::XAxis(), 90)));
+
+    m_engine->SetLightingState(pxr::GlfSimpleLightVector{light}, material,
+                               ambient);
+    m_engine->SetRendererSetting(
+        pxr::HdRenderSettingsTokens->domeLightCameraVisibility,
+        pxr::VtValue(false));
 }
 
 void StageViewWindow::onPrimSelected(const std::optional<pxr::UsdPrim> &prim) {
