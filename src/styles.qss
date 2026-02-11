@@ -1,0 +1,150 @@
+/* Application-wide stylesheet */
+
+/* Main color scheme */
+/*
+ * Background color matches StageViewWindow's clearColor: RGB(0.1, 0.1, 0.1) = #191919
+ */
+
+QMainWindow, QWidget {
+    background-color: #191919;
+    color: #ffffff;
+}
+
+/* Outliner (QTreeWidget) styling */
+QTreeWidget {
+    background-color: #191919;
+    color: #ffffff;
+    border: none;
+    gridline-color: #2a2a2a;
+}
+
+QTreeWidget::item {
+    padding: 2px;
+}
+
+QTreeWidget::item:hover {
+    background-color: #2a2a2a;
+}
+
+QTreeWidget::item:selected {
+    background-color: #337733;
+    color: #ffffff;
+}
+
+QHeaderView::section {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    padding: 4px;
+    border: none;
+}
+
+/* Scrollbar styling */
+QScrollBar:vertical {
+    background-color: #191919;
+    width: 12px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #3a3a3a;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #4a4a4a;
+}
+
+QScrollBar:horizontal {
+    background-color: #191919;
+    height: 12px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #3a3a3a;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #4a4a4a;
+}
+
+/* Menu and menu bar */
+QMenuBar {
+    background-color: #191919;
+    color: #ffffff;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+QMenuBar::item:selected {
+    background-color: #2a2a2a;
+}
+
+QMenu {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #2a2a2a;
+}
+
+QMenu::item:selected {
+    background-color: #337733;
+}
+
+/* Splitter styling */
+QSplitter::handle {
+    background-color: #2a2a2a;
+}
+
+QSplitter::handle:hover {
+    background-color: #3a3a3a;
+}
+
+/* Push button styling */
+QPushButton {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    padding: 4px 12px;
+}
+
+QPushButton:hover {
+    background-color: #3a3a3a;
+}
+
+QPushButton:pressed {
+    background-color: #1a1a1a;
+}
+
+/* Input fields */
+QLineEdit, QTextEdit {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+QLineEdit:focus, QTextEdit:focus {
+    border: 1px solid #337733;
+}
+
+/* Combo box */
+QComboBox {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+QComboBox::drop-down {
+    border: none;
+    background: transparent;
+}
+
+/* Spin box */
+QSpinBox, QDoubleSpinBox {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+}

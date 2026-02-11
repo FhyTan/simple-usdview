@@ -2,6 +2,7 @@
 #include <qapplication.h>
 #include <qsurfaceformat.h>
 
+#include <QFile>
 #include <QVariantAnimation>
 
 #include "FreeCamera.h"
@@ -9,10 +10,17 @@
 #include "Outliner.h"
 #include "StageViewWidget.h"
 
-
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
     qRegisterAnimationInterpolator<CameraView>(cameraViewInterpolator);
+
+    // Load stylesheet
+    QFile styleFile(":/styles.qss");
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString style = QLatin1String(styleFile.readAll());
+        app.setStyleSheet(style);
+        styleFile.close();
+    }
 
     QSurfaceFormat fmt;
     fmt.setVersion(4, 5);

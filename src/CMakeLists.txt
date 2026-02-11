@@ -17,6 +17,7 @@ qt_add_executable(simple_usdview
     FreeCamera.h FreeCamera.cpp
     Outliner.h Outliner.cpp
     Settings.h
+    resources.qrc
 )
 
 set_target_properties(simple_usdview PROPERTIES

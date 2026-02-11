@@ -7,6 +7,7 @@
 #include <qabstractitemview.h>
 #include <qdebug.h>
 #include <qnamespace.h>
+#include <qobject.h>
 #include <qtmetamacros.h>
 #include <qtreewidget.h>
 #include <qvariant.h>
@@ -25,12 +26,13 @@ Outliner::Outliner(QWidget* parent) : QTreeWidget(parent) {
 Outliner::~Outliner() = default;
 
 void Outliner::onStageOpened(const pxr::UsdStagePtr& stage) {
-    std::cout << "Outliner::onStageOpened" << std::endl;
+    // std::cout << "Outliner::onStageOpened" << std::endl;
     m_stage = stage;
     buildStageTree();
 }
 
 void Outliner::onPrimSelected(const std::optional<pxr::UsdPrim>& prim) {
+    // std::cout << "Outliner::onPrimSelected" << std::endl;
     if (prim) {
         auto pathStr = prim->GetPath().GetString().c_str();
         auto item = m_pathToItemHash.value(pathStr, nullptr);
@@ -47,10 +49,12 @@ void Outliner::onPrimSelected(const std::optional<pxr::UsdPrim>& prim) {
 void Outliner::onItemClicked(QTreeWidgetItem* item, int column) {
     auto prim = item->data(column, Qt::UserRole).value<pxr::UsdPrim>();
     Q_EMIT primSelected(std::make_optional(prim));
-    std::cout << "Outliner::onItemClicked: " << prim.GetPath() << std::endl;
+    // std::cout << "Outliner::onItemClicked: " << prim.GetPath() << std::endl;
 }
 
 void Outliner::buildStageTree() {
+    QSignalBlocker blocker{this};
+
     clear();
     m_pathToItemHash.clear();
 
