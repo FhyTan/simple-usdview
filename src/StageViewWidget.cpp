@@ -10,6 +10,7 @@
 #include <pxr/base/gf/vec4f.h>
 #include <pxr/base/tf/token.h>
 #include <pxr/base/vt/value.h>
+#include <pxr/imaging/cameraUtil/conformWindow.h>
 #include <pxr/imaging/glf/simpleLight.h>
 #include <pxr/imaging/glf/simpleMaterial.h>
 #include <pxr/imaging/hd/tokens.h>
@@ -174,18 +175,24 @@ void StageViewWindow::mousePressEvent(QMouseEvent *event) {
         auto windowSize = size();
         // qDebug() << "click pos:" << clickPoint;
 
-        auto x = clickPoint.x() / windowSize.width() * 2 - 1;
-        auto y =
+        double x = clickPoint.x() / windowSize.width() * 2 - 1;
+        double y =
             (windowSize.height() - clickPoint.y()) / windowSize.height() * 2 -
             1;
-        auto w = 1.0 / windowSize.width();
-        auto h = 1.0 / windowSize.height();
+        double w = 1.0 / windowSize.width();
+        double h = 1.0 / windowSize.height();
+        double aspect = windowSize.width() * 1.0 / windowSize.height();
         // qDebug() << "window pos:" << x << y;
         // qDebug() << "pick size:" << w << h;
 
-        auto pickFrustum = m_camera->getFrustum().ComputeNarrowedFrustum(
-            pxr::GfVec2d(x, y), pxr::GfVec2d(w, h));
+        // Copy frustum and modify it to fit the window size
+        pxr::GfFrustum viewFrustum{m_camera->getFrustum()};
+        pxr::CameraUtilConformWindow(
+            &viewFrustum, pxr::CameraUtilConformWindowPolicy::CameraUtilFit,
+            aspect);
 
+        auto pickFrustum = viewFrustum.ComputeNarrowedFrustum(
+            pxr::GfVec2d(x, y), pxr::GfVec2d(w, h));
         pxr::UsdImagingGLEngine::PickParams pickParams{
             pxr::TfToken("resolveNearestToCenter")};
         pxr::UsdImagingGLEngine::IntersectionResultVector results;
