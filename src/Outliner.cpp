@@ -20,6 +20,8 @@ Outliner::Outliner(QWidget* parent) : QTreeWidget(parent) {
     setColumnCount(1);
     setHeaderHidden(true);
     setSelectionMode(SingleSelection);
+    setTextElideMode(Qt::ElideNone);
+    setIndentation(10);
 
     connect(this, &Outliner::itemClicked, this, &Outliner::onItemClicked);
 }
@@ -92,4 +94,5 @@ void Outliner::buildStageTree() {
     delete topUntitledItem;
 
     expandAll();
+    resizeColumnToContents(0);
 }
