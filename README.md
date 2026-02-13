@@ -2,4 +2,5 @@
 
 This is a learn project to implement a usd view like application use qt.
 
-![demonstrate](https://github.com/FhyTan/simple-usdview/blob/main/demonstrate.mp4)
+https://github.com/user-attachments/assets/5e720bef-bc0e-47cd-b26a-f055be72429f
+
