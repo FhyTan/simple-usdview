@@ -61,6 +61,37 @@ StageViewWindow::StageViewWindow()
 
 StageViewWindow::~StageViewWindow() = default;
 
+void StageViewWindow::initializeRenderEngine() {
+    makeCurrent();
+
+    if (m_engine) {
+        delete m_engine;
+    }
+
+    m_engine = new pxr::UsdImagingGLEngine();
+    m_engine->SetRendererAov(pxr::HdAovTokens->color);
+    m_engine->SetSelectionColor(pxr::GfVec4f(0.5, 1.0, 0.5, 0.5));
+
+    int w = width();
+    int h = height();
+    m_engine->SetRenderViewport(pxr::GfVec4d(0, 0, w, h));
+    m_engine->SetRenderBufferSize(pxr::GfVec2i(w, h));
+
+    auto light = pxr::GlfSimpleLight();
+    auto material = pxr::GlfSimpleMaterial();
+    auto ambient = pxr::GfVec4f(0.01, 0.01, 0.01, 1.0);
+
+    light.SetIsDomeLight(true);
+    light.SetTransform(pxr::GfMatrix4d().SetRotate(
+        pxr::GfRotation(pxr::GfVec3d::XAxis(), 90)));
+
+    m_engine->SetLightingState(pxr::GlfSimpleLightVector{light}, material,
+                               ambient);
+    m_engine->SetRendererSetting(
+        pxr::HdRenderSettingsTokens->domeLightCameraVisibility,
+        pxr::VtValue(false));
+}
+
 void StageViewWindow::initializeGL() {
     initializeOpenGLFunctions();
     initializeRenderEngine();
@@ -114,7 +145,7 @@ void StageViewWindow::closeEvent(QCloseEvent *event) {
 
 void StageViewWindow::wheelEvent(QWheelEvent *event) {
     int delta = event->angleDelta().y();
-    m_camera->zoom(static_cast<double>(delta) * 0.01);
+    m_camera->zoom(static_cast<double>(delta) * 1 / 3);
     update();
 }
 
@@ -188,10 +219,10 @@ void StageViewWindow::mouseMoveEvent(QMouseEvent *event) {
                 m_camera->orbit(-delta.x() * 0.5, -delta.y() * 0.5);
                 break;
             case Panning:
-                m_camera->pan(-delta.x() * 0.01, delta.y() * 0.01);
+                m_camera->pan(-delta.x(), delta.y());
                 break;
             case Zooming:
-                m_camera->zoom(-delta.y() * 0.1);
+                m_camera->zoom(-delta.y());
                 break;
         }
 
@@ -242,37 +273,6 @@ void StageViewWindow::dropEvent(QDropEvent *event) {
             return;
         }
     }
-}
-
-void StageViewWindow::initializeRenderEngine() {
-    makeCurrent();
-
-    if (m_engine) {
-        delete m_engine;
-    }
-
-    m_engine = new pxr::UsdImagingGLEngine();
-    m_engine->SetRendererAov(pxr::HdAovTokens->color);
-    m_engine->SetSelectionColor(pxr::GfVec4f(0.5, 1.0, 0.5, 0.5));
-
-    int w = width();
-    int h = height();
-    m_engine->SetRenderViewport(pxr::GfVec4d(0, 0, w, h));
-    m_engine->SetRenderBufferSize(pxr::GfVec2i(w, h));
-
-    auto light = pxr::GlfSimpleLight();
-    auto material = pxr::GlfSimpleMaterial();
-    auto ambient = pxr::GfVec4f(0.01, 0.01, 0.01, 1.0);
-
-    light.SetIsDomeLight(true);
-    light.SetTransform(pxr::GfMatrix4d().SetRotate(
-        pxr::GfRotation(pxr::GfVec3d::XAxis(), 90)));
-
-    m_engine->SetLightingState(pxr::GlfSimpleLightVector{light}, material,
-                               ambient);
-    m_engine->SetRendererSetting(
-        pxr::HdRenderSettingsTokens->domeLightCameraVisibility,
-        pxr::VtValue(false));
 }
 
 void StageViewWindow::onPrimSelected(const std::optional<pxr::UsdPrim> &prim) {

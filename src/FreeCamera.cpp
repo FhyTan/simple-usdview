@@ -63,10 +63,11 @@ void FreeCamera::setCameraView(CameraView value) {
 FreeCamera& FreeCamera::orbit(const double deltaX, const double deltaY) {
     pxr::GfVec3d lookAtPoint = m_frustum.ComputeLookAtPoint();
     pxr::GfMatrix4d translate = pxr::GfMatrix4d().SetTranslate(lookAtPoint);
+    double factor = 0.5;
 
     m_frustum.Transform(translate.GetInverse() *
-                        pxr::GfMatrix4d().SetRotate(
-                            pxr::GfRotation(pxr::GfVec3f(0, 0, 1), deltaX)) *
+                        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(
+                            pxr::GfVec3f(0, 0, 1), deltaX * factor)) *
                         translate);
 
     pxr::GfVec3d side;
@@ -76,7 +77,8 @@ FreeCamera& FreeCamera::orbit(const double deltaX, const double deltaY) {
 
     m_frustum.Transform(
         translate.GetInverse() *
-        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(side, deltaY)) * translate);
+        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(side, deltaY * factor)) *
+        translate);
 
     return *this;
 }
@@ -87,8 +89,9 @@ FreeCamera& FreeCamera::pan(const double deltaX, const double deltaY) {
     pxr::GfVec3d view;
     m_frustum.ComputeViewFrame(&side, &up, &view);
 
-    auto moveX = pxr::GfMatrix4d().SetTranslate(side * deltaX);
-    auto moveY = pxr::GfMatrix4d().SetTranslate(up * deltaY);
+    double factor = m_frustum.GetViewDistance() * 0.002;
+    auto moveX = pxr::GfMatrix4d().SetTranslate(side * deltaX * factor);
+    auto moveY = pxr::GfMatrix4d().SetTranslate(up * deltaY * factor);
     m_frustum.Transform(moveX * moveY);
 
     return *this;
@@ -97,11 +100,12 @@ FreeCamera& FreeCamera::pan(const double deltaX, const double deltaY) {
 FreeCamera& FreeCamera::zoom(const double deltaDistance) {
     auto viewDirection = m_frustum.ComputeViewDirection();
     double distance = m_frustum.GetViewDistance();
+    double factor = distance * 0.01;
 
     if (distance - deltaDistance > 0.1) {
-        m_frustum.Transform(
-            pxr::GfMatrix4d().SetTranslate(viewDirection * deltaDistance));
-        m_frustum.SetViewDistance(distance - deltaDistance);
+        m_frustum.Transform(pxr::GfMatrix4d().SetTranslate(
+            viewDirection * deltaDistance * factor));
+        m_frustum.SetViewDistance(distance - deltaDistance * factor);
     }
 
     return *this;
